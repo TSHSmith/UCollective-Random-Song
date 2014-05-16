@@ -6,6 +6,7 @@
     android:paddingLeft="@dimen/activity_horizontal_margin"
     android:paddingRight="@dimen/activity_horizontal_margin"
     android:paddingTop="@dimen/activity_vertical_margin"
+    android:gravity="center_horizontal"
     tools:context="com.example.urltests.MainActivity$PlaceholderFragment" >
 
     <Button
@@ -23,8 +24,8 @@
     <Button
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="@string/button_play"
-        android:onClick="playMusic"/>
+        android:onClick="playMusic"
+        android:background="@drawable/play_image"/>
 
 
 
