@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="app_name">urlTests</string>
+    <string name="hello_world">Hello world!</string>
+    <string name="action_settings">Settings</string>
+    <string name="button_get">Go!</string>
+    <string name="display"></string>
+    <string name="button_pause">Pause</string>
+    <string name="button_play">Play</string>
+
+</resources>
