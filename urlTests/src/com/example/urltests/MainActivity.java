@@ -2,6 +2,7 @@ package com.example.urltests;
 
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.http.client.ClientProtocolException;
 import org.json.JSONException;
@@ -20,14 +21,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.ProgressBar;
 import android.widget.TextView;
 import android.os.Build;
 
 public class MainActivity extends Activity {
-	Boolean running = false;
-	Asynctask as;
-	MediaPlayer mp;
-	
+
+	private volatile MediaPlayer mp;
+	private ProgressBar progressBar;
+	private Boolean stop = false;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -76,8 +78,16 @@ public class MainActivity extends Activity {
 		}
 	}
 	
-	public void getString(View view){	
+	public void getString(View view){
+		if(mp != null){
+			if(mp.isPlaying()){
+				mp.stop();
+				stop = true;
+			}
+		}
+		this.progressBar = (ProgressBar) findViewById(R.id.songProgress);
 		new Asynctask(this).execute();
+		new check().execute();
 	}
 	
 	public void pauseMusic(View view){
@@ -87,6 +97,29 @@ public class MainActivity extends Activity {
 	
 	public void playMusic(View view){
 		this.mp.start();
+	}
+	
+	class check extends AsyncTask<Void, Void, Void>{
+
+		@Override
+		protected Void doInBackground(Void... params) {
+			stop = false;
+			while(true){
+				if (mp != null){
+					progressBar.setMax(mp.getDuration());
+					while(progressBar.getMax() != mp.getCurrentPosition()){
+						progressBar.setProgress(mp.getCurrentPosition());
+						
+						if(stop)
+							break;
+					}
+				}
+				if(stop)
+					break;
+			}
+			return null;
+		}
+
 	}
 	
 	
@@ -108,16 +141,13 @@ public class MainActivity extends Activity {
 	    protected void onPreExecute() {
 	        this.pd.setMessage("Getting your sick tunes.");
 			this.pd.show();
-	        super.onPreExecute();
+	        //super.onPreExecute();
 	    }
 		
 		@Override
 		protected Void doInBackground(Void... params) {
 			try {
-				if(mp != null){
-					if(mp.isPlaying())
-						mp.stop();
-				}
+				
 				//gets a random json from url and saves it as a string;
 				getJSON gj = new getJSON();
 				String text = gj.startThread();
@@ -135,7 +165,6 @@ public class MainActivity extends Activity {
 				mp.prepare();
 				//starts streaming the audio
 				mp.start();
-
 			} catch (ClientProtocolException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -155,6 +184,7 @@ public class MainActivity extends Activity {
 		}
 		
 	}
+
 
 }
 
