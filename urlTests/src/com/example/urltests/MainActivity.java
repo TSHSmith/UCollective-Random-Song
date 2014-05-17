@@ -1,22 +1,19 @@
 package com.example.urltests;
 
-import java.io.ByteArrayOutputStream;
+
 import java.io.IOException;
 
-import org.apache.http.HttpResponse;
-import org.apache.http.HttpStatus;
-import org.apache.http.StatusLine;
 import org.apache.http.client.ClientProtocolException;
-import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import android.app.Activity;
-import android.app.ActionBar;
 import android.app.Fragment;
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.media.MediaPlayer;
+import android.media.MediaPlayer.OnCompletionListener;
+import android.os.AsyncTask;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
@@ -27,8 +24,10 @@ import android.widget.TextView;
 import android.os.Build;
 
 public class MainActivity extends Activity {
-	
+	Boolean running = false;
 	musicMng mM = new musicMng();
+	Asynctask as;
+	MediaPlayer mp;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -78,18 +77,87 @@ public class MainActivity extends Activity {
 		}
 	}
 	
-	public void getString(View view){
-		new Thread(mM).start();
+	public void getString(View view){	
+		new Asynctask(this).execute();
 	}
 	
 	public void pauseMusic(View view){
-		this.mM.pause();
+		this.mp.pause();
+		
 	}
 	
 	public void playMusic(View view){
-		this.mM.play();
+		this.mp.start();
 	}
 	
 	
+	class Asynctask extends AsyncTask<Void, Void, Void>{
+
+		 ProgressDialog pd;
+	     Context co;
+	     MainActivity ma;
+
+
+	     public Asynctask (MainActivity ma){
+	         this.ma= ma;
+	         this.co = ma;
+	         pd= new ProgressDialog(co);
+
+	     }
+	     
+		@Override
+	    protected void onPreExecute() {
+	        this.pd.setMessage("Getting your sick tunes.");
+			this.pd.show();
+	        super.onPreExecute();
+	    }
+		
+		@Override
+		protected Void doInBackground(Void... params) {
+			try {
+				if(mp != null){
+					if(mp.isPlaying())
+						mp.stop();
+				}
+				//gets a random json from url and saves it as a string;
+				getJSON gj = new getJSON();
+				String text = gj.startThread();
+				JSONObject obj = new JSONObject(text);
+				mp = new MediaPlayer();
+				mp.setOnCompletionListener(new OnCompletionListener(){
+					@Override
+					public void onCompletion(MediaPlayer mp) {
+						new Asynctask(ma).execute();
+					}
+				});
+				//sets the source of the data to that in the JSON object under the name "file"
+				mp.setDataSource(obj.getString("file"));
+				//prepares the mediaplayer
+				mp.prepare();
+				//starts streaming the audio
+				mp.start();
+
+			} catch (ClientProtocolException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			return null;
+		}
+		
+		@Override
+		protected void onPostExecute(Void result){
+			this.pd.dismiss();
+		}
+		
+	}
 
 }
+
+
+

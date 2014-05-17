@@ -2,6 +2,7 @@ package com.example.urltests;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.HttpStatus;
@@ -13,8 +14,11 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.app.ProgressDialog;
+import android.content.Context;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
+import android.os.Looper;
 
 public class musicMng implements Runnable{
 	
@@ -32,18 +36,17 @@ public class musicMng implements Runnable{
 			this.playSong();
 			isPlaying = true;
 		}
-			
 	}
 	
 	public void playSong(){
 		hasEnded = false;
 		try {
-			//gets a random json from url and saves it as a string
+			//gets a random json from url and saves it as a string;
 			getJSON gj = new getJSON();
 			String text = gj.startThread();
 			JSONObject obj = new JSONObject(text);
-	
-			mp = new MediaPlayer();	
+			MediaPlayer mp = new MediaPlayer();
+			
 			mp.setOnCompletionListener(new OnCompletionListener(){
 				@Override
 				public void onCompletion(MediaPlayer mp) {
@@ -57,6 +60,7 @@ public class musicMng implements Runnable{
 			mp.prepare();
 			//starts streaming the audio
 			mp.start();
+
 		} catch (ClientProtocolException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
@@ -85,7 +89,11 @@ public class musicMng implements Runnable{
 	}
 	
 	public Boolean getIsPlaying(){
-		return this.isPlaying;
+		return mp.isPlaying();
+	}
+	
+	public void release(){
+		this.mp.release();
 	}
 	
 	private String getJson(String url) throws ClientProtocolException, IOException{
