@@ -1,4 +1,4 @@
-package com.example.urltests;
+package backups;
 
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
@@ -13,6 +13,8 @@ import org.apache.http.client.methods.HttpGet;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.json.JSONException;
 import org.json.JSONObject;
+
+import com.example.urltests.getJSON;
 
 import android.app.ProgressDialog;
 import android.content.Context;

@@ -25,7 +25,6 @@ import android.os.Build;
 
 public class MainActivity extends Activity {
 	Boolean running = false;
-	musicMng mM = new musicMng();
 	Asynctask as;
 	MediaPlayer mp;
 	
