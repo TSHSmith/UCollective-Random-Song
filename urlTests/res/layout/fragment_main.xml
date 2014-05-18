@@ -14,30 +14,25 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:gravity="center_horizontal"
-        android:orientation="horizontal" >
+        android:orientation="horizontal">
         
-        <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/button_get"
-        android:onClick="getString"/>
-    
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="@string/button_pause"
-        android:onClick="pauseMusic"/>
-    
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="playMusic"
-        android:background="@drawable/play_image"/>"
+        <!--   <Button
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"
+	        android:text="@string/button_get"
+	        android:onClick="getSong"/> -->
+      
+	    <Button
+	        android:id="@+id/playButton"
+	        android:layout_width="wrap_content"
+	        android:layout_height="wrap_content"/>
+	    
     </LinearLayout>
 
     <SeekBar
         android:id="@+id/songProgress"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content" />
+        android:layout_height="wrap_content"
+         />
 
 </LinearLayout>

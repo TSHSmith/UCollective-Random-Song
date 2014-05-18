@@ -8,10 +8,15 @@ import org.apache.http.client.ClientProtocolException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
+import android.R.color;
 import android.app.Activity;
 import android.app.Fragment;
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.graphics.Color;
+import android.graphics.ColorFilter;
+import android.graphics.Rect;
+import android.graphics.PorterDuff.Mode;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnCompletionListener;
 import android.os.AsyncTask;
@@ -19,8 +24,10 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.ProgressBar;
 import android.widget.SeekBar;
 import android.widget.SeekBar.OnSeekBarChangeListener;
@@ -32,9 +39,13 @@ public class MainActivity extends Activity {
 	private volatile MediaPlayer mp;
 	private ProgressBar progressBar;
 	private SeekBar seekbar;
-	
+	private Boolean musicPaused = false;
+	Button button;
 	private Boolean stop = false;
 	private Boolean update = true;
+	private Rect rect;
+	private Boolean hasBeenPressed = false;
+	private MainActivity mA = this;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -44,6 +55,8 @@ public class MainActivity extends Activity {
 			getFragmentManager().beginTransaction()
 					.add(R.id.container, new PlaceholderFragment()).commit();
 		}
+		
+		
 	}
 
 	@Override
@@ -51,6 +64,83 @@ public class MainActivity extends Activity {
 
 		// Inflate the menu; this adds items to the action bar if it is present.
 		getMenuInflater().inflate(R.menu.main, menu);
+		
+		button = (Button) findViewById(R.id.playButton);
+		button.setBackgroundResource(R.drawable.play);
+		button.setOnTouchListener(new View.OnTouchListener() {
+			
+			@Override
+			public boolean onTouch(View v, MotionEvent event) {
+				if(mp != null){
+					switch(event.getAction()){
+					case MotionEvent.ACTION_CANCEL:
+						break;
+					case MotionEvent.ACTION_DOWN:
+						if(!mp.isPlaying()){
+							button.setBackgroundResource(R.drawable.playpressed);
+						}else{
+							button.setBackgroundResource(R.drawable.pausepressed);
+						}
+						break;
+					case MotionEvent.ACTION_UP:
+						if (!mp.isPlaying()){
+							button.setBackgroundResource(R.drawable.pause);
+							mp.start();
+						} else {
+							button.setBackgroundResource(R.drawable.play);
+							mp.pause();
+						}
+						break;
+					}
+					
+				}
+				
+				if(!hasBeenPressed){
+					switch(event.getAction()){
+					case MotionEvent.ACTION_DOWN:
+						button.setBackgroundResource(R.drawable.playpressed);
+						new Asynctask(mA).execute();
+						new check().execute();
+					case MotionEvent.ACTION_UP:
+						button.setBackgroundResource(R.drawable.playpressed);
+						hasBeenPressed = true;
+						break;
+					}
+					
+				}
+				return false;
+			}
+		});
+		
+		this.seekbar = (SeekBar) findViewById(R.id.songProgress);
+		seekbar.getProgressDrawable().setColorFilter(Color.argb(255, 255, 102, 0), Mode.SRC_IN);
+		seekbar.getThumb().setColorFilter(Color.argb(255, 255, 102, 0), Mode.SRC_IN);
+		seekbar.setEnabled(false);
+		seekbar.setOnSeekBarChangeListener(new OnSeekBarChangeListener(){
+
+		    @Override       
+		    public void onStopTrackingTouch(SeekBar seekBar) {
+		    	if(mp != null)
+		    		mp.seekTo(seekbar.getProgress());
+		    	
+		    	seekbar.getThumb().setColorFilter(Color.argb(255, 255, 102, 0), Mode.SRC_IN);
+		        update = true;     
+		    }       
+
+		    @Override       
+		    public void onStartTrackingTouch(SeekBar seekBar) {
+		    	seekbar.getThumb().setColorFilter(Color.argb(255, 48, 144, 192), Mode.SRC_IN);
+		        update = false;  
+		    }
+
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,
+					boolean fromUser) {
+				// TODO Auto-generated method stub
+				
+			}     
+		});
+		
 		return true;
 	}
 
@@ -83,47 +173,28 @@ public class MainActivity extends Activity {
 		}
 	}
 	
-	public void getString(View view){
+	/**
+	 * Gets a song using the Asynctask, starts the update of the seekbar using check and sets up the onchangeListneer for the seekbar.
+	 * @param view
+	 */
+	public void getSong(View view){
 		if(mp != null){
 			if(mp.isPlaying()){
 				mp.stop();
 			}
 			stop = true;
 		}
-		this.seekbar = (SeekBar) findViewById(R.id.songProgress);
-		seekbar.setOnSeekBarChangeListener(new OnSeekBarChangeListener(){
-
-		    @Override       
-		    public void onStopTrackingTouch(SeekBar seekBar) {
-		    	mp.seekTo(seekbar.getProgress());
-		        update = true;     
-		    }       
-
-		    @Override       
-		    public void onStartTrackingTouch(SeekBar seekBar) {     
-		        update = false;  
-		    }
-
-			@Override
-			public void onProgressChanged(SeekBar seekBar, int progress,
-					boolean fromUser) {
-				// TODO Auto-generated method stub
-				
-			}     
-		});
+		
+		
 		new Asynctask(this).execute();
 		new check().execute();
 	}
 	
-	public void pauseMusic(View view){
-		this.mp.pause();
-		
-	}
-	
-	public void playMusic(View view){
-		this.mp.start();
-	}
-	
+	/**
+	 * An Async task that upates the current status of the progress bar using the current position of the MediaPlayer: mP.
+	 * @author Thomas
+	 *
+	 */
 	class check extends AsyncTask<Void, Void, Void>{
 
 		@Override
@@ -148,7 +219,12 @@ public class MainActivity extends Activity {
 
 	}
 	
-	
+	/**
+	 * An Async task that gets the json for a random song and starts playing the music using the local variable mP.
+	 * 
+	 * @author Thomas
+	 *
+	 */
 	class Asynctask extends AsyncTask<Void, Void, Void>{
 
 		 ProgressDialog pd;
@@ -215,6 +291,8 @@ public class MainActivity extends Activity {
 		@Override
 		protected void onPostExecute(Void result){
 			this.pd.dismiss();
+			seekbar.setEnabled(true);
+			button.setBackgroundResource(R.drawable.pause);
 		}
 		
 	}
