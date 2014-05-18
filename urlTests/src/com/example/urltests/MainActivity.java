@@ -22,6 +22,8 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ProgressBar;
+import android.widget.SeekBar;
+import android.widget.SeekBar.OnSeekBarChangeListener;
 import android.widget.TextView;
 import android.os.Build;
 
@@ -29,7 +31,10 @@ public class MainActivity extends Activity {
 
 	private volatile MediaPlayer mp;
 	private ProgressBar progressBar;
+	private SeekBar seekbar;
+	
 	private Boolean stop = false;
+	private Boolean update = true;
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -82,10 +87,30 @@ public class MainActivity extends Activity {
 		if(mp != null){
 			if(mp.isPlaying()){
 				mp.stop();
-				stop = true;
 			}
+			stop = true;
 		}
-		this.progressBar = (ProgressBar) findViewById(R.id.songProgress);
+		this.seekbar = (SeekBar) findViewById(R.id.songProgress);
+		seekbar.setOnSeekBarChangeListener(new OnSeekBarChangeListener(){
+
+		    @Override       
+		    public void onStopTrackingTouch(SeekBar seekBar) {
+		    	mp.seekTo(seekbar.getProgress());
+		        update = true;     
+		    }       
+
+		    @Override       
+		    public void onStartTrackingTouch(SeekBar seekBar) {     
+		        update = false;  
+		    }
+
+			@Override
+			public void onProgressChanged(SeekBar seekBar, int progress,
+					boolean fromUser) {
+				// TODO Auto-generated method stub
+				
+			}     
+		});
 		new Asynctask(this).execute();
 		new check().execute();
 	}
@@ -106,9 +131,10 @@ public class MainActivity extends Activity {
 			stop = false;
 			while(true){
 				if (mp != null){
-					progressBar.setMax(mp.getDuration());
-					while(progressBar.getMax() != mp.getCurrentPosition()){
-						progressBar.setProgress(mp.getCurrentPosition());
+					seekbar.setMax(mp.getDuration());
+					while(seekbar.getMax() != mp.getCurrentPosition()){
+						if(update)
+							seekbar.setProgress(mp.getCurrentPosition());
 						
 						if(stop)
 							break;
@@ -156,7 +182,15 @@ public class MainActivity extends Activity {
 				mp.setOnCompletionListener(new OnCompletionListener(){
 					@Override
 					public void onCompletion(MediaPlayer mp) {
+						if(mp != null){
+							if(mp.isPlaying()){
+								mp.stop();
+							}
+							stop = true;
+						}
+						//seekbar = (SeekBar) findViewById(R.id.songProgress);
 						new Asynctask(ma).execute();
+						new check().execute();
 					}
 				});
 				//sets the source of the data to that in the JSON object under the name "file"

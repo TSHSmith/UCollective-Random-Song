@@ -35,9 +35,8 @@
         android:background="@drawable/play_image"/>"
     </LinearLayout>
 
-    <ProgressBar
+    <SeekBar
         android:id="@+id/songProgress"
-        style="?android:attr/progressBarStyleHorizontal"
         android:layout_width="match_parent"
         android:layout_height="wrap_content" />
 
